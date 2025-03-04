@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_view"
+        android:icon="@drawable/ic_view_materials"
+        android:title="Ver" />
+
+    <item
+        android:id="@+id/nav_add"
+        android:icon="@drawable/ic_add_materials"
+        android:title="Agregar" />
+
+    <item
+        android:id="@+id/nav_edit"
+        android:icon="@drawable/ic_edit_materials"
+        android:title="Editar" />
+
+    <item
+        android:id="@+id/nav_delete"
+        android:icon="@drawable/ic_delete_materials"
+        android:title="Eliminar" />
+</menu>
