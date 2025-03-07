@@ -2,29 +2,39 @@ package com.example.kingsoftlog
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Bundle
-import android.widget.Switch
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import android.view.LayoutInflater
+import java.text.SimpleDateFormat
+import java.util.*
 import android.view.View
 import android.view.ViewGroup
-import androidx.cardview.widget.CardView
-import android.graphics.Color
-import android.content.res.Configuration
+import android.view.LayoutInflater
+
 
 class MainMenuActivity : AppCompatActivity() {
 
+    // Referencias a las vistas del header
+    private lateinit var btnHamburger: ImageButton
+    private lateinit var textBienvenido: TextView
+    private lateinit var textFechaHora: TextView
+    private lateinit var companyIcon: ImageView
+
+    // Referencias a las demás vistas
     private lateinit var recyclerView: RecyclerView
     private lateinit var switchModoOscuro: Switch
     private lateinit var bottomNavigationView: BottomNavigationView
@@ -40,7 +50,40 @@ class MainMenuActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_menu)
 
-        // Iniciamos vistas
+        // ============ HEADER ============
+        btnHamburger = findViewById(R.id.btnHamburger)
+        textBienvenido = findViewById(R.id.textBienvenido)
+        textFechaHora = findViewById(R.id.textFechaHora)
+        companyIcon = findViewById(R.id.companyIcon)
+
+        // Configurar botón hamburguesa
+        btnHamburger.setOnClickListener {
+            val popup = androidx.appcompat.widget.PopupMenu(this, btnHamburger)
+            popup.menuInflater.inflate(R.menu.menu_hamburger, popup.menu)
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.menu_cerrar_sesion -> {
+                        cerrarSesion()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
+
+        // Mostrar nombre de usuario (ejemplo: guardado en SharedPreferences en el login)
+        val prefs = getSharedPreferences("login_prefs", MODE_PRIVATE)
+        val nombreUsuario = prefs.getString("nombre_usuario", "Invitado")
+        textBienvenido.text = "Bienvenido, $nombreUsuario"
+
+        // Mostrar fecha y hora actual
+        val dateFormat = SimpleDateFormat("EEEE, d 'de' MMMM 'del' yyyy - HH:mm", Locale.getDefault())
+        val fechaHora = dateFormat.format(Date())
+        textFechaHora.text = fechaHora
+        // ========== FIN HEADER ==========
+
+        // Iniciamos vistas principales
         recyclerView = findViewById(R.id.recycler_actividades)
         switchModoOscuro = findViewById(R.id.switch_modo_oscuro)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
@@ -50,6 +93,7 @@ class MainMenuActivity : AppCompatActivity() {
         cardResumen = findViewById(R.id.cardResumen)
 
         dbHelper = DBHelper(this)
+
         val isNightMode = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
         switchModoOscuro.isChecked = isNightMode
 
@@ -61,7 +105,7 @@ class MainMenuActivity : AppCompatActivity() {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
             saveThemePreference(isChecked)
-            // No llamamos a recreate() aquí
+            // No llamamos a recreate() aquí para evitar recargar la actividad de inmediato
         }
 
         // Configuramos el RecyclerView
@@ -71,12 +115,11 @@ class MainMenuActivity : AppCompatActivity() {
         // Configurar el gráfico con datos reales
         configurarPieChart()
 
-        // Agregamos listener al gráfico para filtrar por categoría
+        // Listener del gráfico para filtrar por categoría
         pieChart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
             override fun onValueSelected(e: com.github.mikephil.charting.data.Entry?, h: Highlight?) {
                 if (e is PieEntry) {
                     val category = e.label
-                    // Obtenemos productos de la categoría seleccionada
                     val products = getProductsForCategory(category)
                     recyclerView.adapter = ProductAdapter(products)
                 }
@@ -132,7 +175,7 @@ class MainMenuActivity : AppCompatActivity() {
         }
     }
 
-    // Función para guardar la preferencia del tema
+    // Guardar la preferencia del tema
     private fun saveThemePreference(isDarkMode: Boolean) {
         val sharedPref = getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
         with(sharedPref.edit()) {
@@ -141,25 +184,30 @@ class MainMenuActivity : AppCompatActivity() {
         }
     }
 
+    // Configurar la gráfica circular
     private fun configurarPieChart() {
         val categoryCounts = dbHelper.getProductsCountByCategory()
+        // Ordenar las categorías en un orden específico
         val orderedCategories = listOf("Repuestos", "Herramientas", "Accesorios", "Piezas")
         val entries = orderedCategories.map { category ->
             val actualCount = categoryCounts[category] ?: 0
+            // Si no hay productos, poner 1 para que se vea en la gráfica, pero el valor real es 0
             val valueForChart = if (actualCount == 0) 1f else actualCount.toFloat()
             PieEntry(valueForChart, category, actualCount)
         }
+
         val customColors = listOf(
-            Color.parseColor("#FF5722"),
-            Color.parseColor("#4CAF50"),
-            Color.parseColor("#2196F3"),
-            Color.parseColor("#FFC107")
+            Color.parseColor("#FF5722"), // Naranja
+            Color.parseColor("#4CAF50"), // Verde
+            Color.parseColor("#2196F3"), // Azul
+            Color.parseColor("#FFC107")  // Amarillo
         )
+
         val dataSet = PieDataSet(entries, "Distribución de Materiales")
         dataSet.colors = customColors
 
-        // ValueFormatter para mostrar el valor real (0 en lugar de 1)
-        dataSet.valueFormatter = object : com.github.mikephil.charting.formatter.ValueFormatter() {
+        // Mostrar el valor real (0) en lugar de 1
+        dataSet.valueFormatter = object : ValueFormatter() {
             override fun getPieLabel(value: Float, pieEntry: PieEntry?): String {
                 return if (pieEntry?.data is Int) {
                     val realCount = pieEntry.data as Int
@@ -176,8 +224,7 @@ class MainMenuActivity : AppCompatActivity() {
         pieChart.setDrawEntryLabels(true)
 
         val isNightMode = resources.configuration.uiMode and
-                android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
+                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
         if (isNightMode) {
             pieChart.setEntryLabelColor(Color.WHITE)
@@ -201,11 +248,12 @@ class MainMenuActivity : AppCompatActivity() {
         pieChart.invalidate()
     }
 
+    // Obtener productos por categoría
     private fun getProductsForCategory(category: String): List<Product> {
         return dbHelper.obtenerProductosPorCategoria(category)
     }
 
-    // Adaptador para mostrar la lista de productos
+    // Adaptador para la lista de productos
     inner class ProductAdapter(private val products: List<Product>) :
         RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
@@ -215,8 +263,7 @@ class MainMenuActivity : AppCompatActivity() {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_material, parent, false)
+            val view = layoutInflater.inflate(R.layout.item_material, parent, false)
             return ProductViewHolder(view)
         }
 
@@ -229,13 +276,12 @@ class MainMenuActivity : AppCompatActivity() {
         override fun getItemCount() = products.size
     }
 
+    // Mostrar resumen de totales y bajo stock
     private fun refreshSummary() {
-        // 1) Obtenemos el total de productos
         val total = dbHelper.getTotalProductsCount()
         totalMateriales.text = "Total de Materiales: $total"
-        // 2) Obtenemos los productos con bajo stock (umbral 4)
+
         val lowStockList = dbHelper.getLowStockMaterials(4)
-        // 3) Mostrar nombres en el TextView "bajoStock"
         if (lowStockList.isEmpty()) {
             bajoStock.text = "Materiales con bajo stock: (ninguno)"
         } else {
@@ -244,27 +290,27 @@ class MainMenuActivity : AppCompatActivity() {
         }
     }
 
+    // Ajustar colores según el modo actual
     private fun actualizarColoresSegunTema() {
         val isNightMode = resources.configuration.uiMode and
-                android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
+                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
         if (isNightMode) {
             totalMateriales.setTextColor(Color.WHITE)
-            bajoStock.setTextColor(Color.RED) // Mantener rojo para bajo stock
+            bajoStock.setTextColor(Color.RED)
             switchModoOscuro.setTextColor(Color.WHITE)
             cardResumen.setCardBackgroundColor(Color.DKGRAY)
         } else {
             totalMateriales.setTextColor(Color.BLACK)
-            bajoStock.setTextColor(Color.RED) // Mantener rojo para bajo stock
+            bajoStock.setTextColor(Color.RED)
             switchModoOscuro.setTextColor(Color.BLACK)
             cardResumen.setCardBackgroundColor(Color.WHITE)
         }
     }
 
-    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+    // Reaccionar a cambios de configuración (ej: modo oscuro activado/desactivado)
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // Aplicar el tema basado en la nueva configuración
         val currentNightMode = newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK
         when (currentNightMode) {
             Configuration.UI_MODE_NIGHT_NO -> {
@@ -274,8 +320,18 @@ class MainMenuActivity : AppCompatActivity() {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             }
         }
-        // Actualizar colores y gráfico
         actualizarColoresSegunTema()
         configurarPieChart()
+    }
+
+    // Lógica para cerrar sesión y volver al Login
+    private fun cerrarSesion() {
+        val prefs = getSharedPreferences("login_prefs", MODE_PRIVATE)
+        prefs.edit().clear().apply()
+
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }

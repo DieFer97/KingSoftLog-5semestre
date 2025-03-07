@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">KingSoft Log</string>
+    <string name="menu">Menú</string>
+    <string name="company_icon">Ícono de la empresa</string>
 </resources>

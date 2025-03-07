@@ -1,10 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Tarjeta de Resumen -->
+    <!-- Encabezado (header) -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Botón hamburguesa -->
+        <ImageButton
+            android:id="@+id/btnHamburger"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+
+            android:padding="8dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerInside"
+
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_menu"
+            android:contentDescription="@string/menu" />
+
+
+        <!-- Contenedor para textos de bienvenida y fecha/hora -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <!-- Texto de bienvenida -->
+            <TextView
+                android:id="@+id/textBienvenido"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bienvenido, Diego"
+                android:textStyle="bold"
+                android:textSize="18sp" />
+
+            <!-- Fecha y hora -->
+            <TextView
+                android:id="@+id/textFechaHora"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="jueves, 27 de febrero del 2025 - 12:51"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Ícono de la empresa a la derecha -->
+        <ImageView
+            android:id="@+id/companyIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/logo_empresa"
+            android:contentDescription="@string/company_icon"/>
+    </LinearLayout>
+
+    <!-- Tarjeta de Resumen debajo del header -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardResumen"
         android:layout_width="match_parent"
@@ -12,10 +74,11 @@
         android:layout_margin="30dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Contenido de tu tarjeta (resumen) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -27,8 +90,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Total de Materiales:"
-                android:textStyle="bold"
-                android:textSize="18sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/bajo_stock"
@@ -36,12 +99,12 @@
                 android:layout_height="wrap_content"
                 android:text="Materiales con bajo stock:"
                 android:textColor="#D32F2F"
-                android:textStyle="bold"
-                android:textSize="16sp"/>
+                android:textSize="16sp"
+                android:textStyle="bold"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Gráfico de estadísticas -->
+    <!-- PieChart -->
     <com.github.mikephil.charting.charts.PieChart
         android:id="@+id/chart"
         android:layout_width="match_parent"
@@ -56,37 +119,32 @@
         android:id="@+id/switch_modo_oscuro"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minWidth="48dp"
-        android:minHeight="48dp"
-        android:padding="8dp"
         android:text="Modo Oscuro"
+        android:layout_margin="16dp"
         app:layout_constraintTop_toBottomOf="@id/chart"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_margin="16dp"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
-
-    <!-- Tabla de Materiales -->
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_actividades"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_margin="8dp"
         app:layout_constraintTop_toBottomOf="@id/switch_modo_oscuro"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="8dp"/>
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Navegación inferior -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:itemIconTint="@null"
+        app:menu="@menu/bottom_nav_menu"
         app:itemHorizontalTranslationEnabled="false"
         app:labelVisibilityMode="labeled"
         app:itemIconSize="26dp"
-        app:rippleColor="@null"/>
+        android:layout_marginTop="8dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

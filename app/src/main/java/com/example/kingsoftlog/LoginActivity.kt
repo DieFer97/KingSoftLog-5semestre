@@ -110,6 +110,10 @@ class LoginActivity : AppCompatActivity() {
         }
 
         if (dbHelper.checkUser(studentId, password)) {
+            // Guardar el nombre del usuario en SharedPreferences
+            val prefs = getSharedPreferences("login_prefs", MODE_PRIVATE)
+            prefs.edit().putString("nombre_usuario", studentId).apply()
+
             val intent = Intent(this, MainMenuActivity::class.java)
             intent.putExtra("STUDENT_ID", studentId)
             startActivity(intent)
@@ -142,6 +146,10 @@ class LoginActivity : AppCompatActivity() {
 
         if (dbHelper.addUser(studentId, email, password, career)) {
             Toast.makeText(this, "Usuario registrado con éxito", Toast.LENGTH_SHORT).show()
+
+            // Guardar el nombre del usuario en SharedPreferences
+            val prefs = getSharedPreferences("login_prefs", MODE_PRIVATE)
+            prefs.edit().putString("nombre_usuario", studentId).apply()
 
             val intent = Intent(this, MainMenuActivity::class.java)
             intent.putExtra("STUDENT_ID", studentId)

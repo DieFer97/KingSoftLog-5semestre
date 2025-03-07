@@ -17,6 +17,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Eliminar"
+        android:fontFamily="arial"
+        android:textStyle="bold"
         android:textColor="@android:color/white"
-        android:background="@android:color/holo_red_dark"/>
+        android:backgroundTint="@color/blue"/>
 </LinearLayout>
