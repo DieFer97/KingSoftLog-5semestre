@@ -13,7 +13,6 @@
         android:theme="@style/Theme.KingSoftLog"
         tools:targetApi="31">
 
-        <!-- Actividad principal -->
         <activity
             android:name=".MainActivity"
             android:configChanges="uiMode"
@@ -24,15 +23,22 @@
             </intent-filter>
         </activity>
 
-        <!-- Otras actividades -->
         <activity android:name=".LoginActivity" />
         <activity android:name=".MainMenuActivity" />
         <activity android:name=".ViewMaterialsActivity" />
         <activity android:name=".AddMaterialsActivity" />
         <activity android:name=".EditMaterialsActivity" />
         <activity android:name=".DeleteMaterialsActivity" />
-        <activity android:name=".UpdateMaterialActivity" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
-
 </manifest>

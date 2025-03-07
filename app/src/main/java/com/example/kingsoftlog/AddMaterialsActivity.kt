@@ -2,22 +2,24 @@ package com.example.kingsoftlog
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import java.io.File
-import java.io.FileOutputStream
+
 
 class AddMaterialsActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DBHelper
     private lateinit var spinnerCategoria: Spinner
     private lateinit var btnTomarFoto: Button
-    private var imageUri: Uri? = null
+
+    //Variable para guardar la URI donde se almacenará la foto
+    private var photoURI: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,18 +35,35 @@ class AddMaterialsActivity : AppCompatActivity() {
 
         dbHelper = DBHelper(this)
 
-        // **Configurar Spinner de Categorías**
+        //Configuramos el Spinner de Categorías
         val categorias = arrayOf("Repuestos", "Piezas", "Accesorios", "Herramientas")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categorias)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCategoria.adapter = adapter
 
-        // **Configurar botón de cámara**
+        // Configuramos el botón para tomar la foto en alta resolución
         btnTomarFoto.setOnClickListener {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+            //Creamos el archivo donde se guardará la foto
+            val photoFile = File(
+                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                "material_${System.currentTimeMillis()}.jpg"
+            )
+
+            //Obtenemos la URI usando FileProvider
+            photoURI = FileProvider.getUriForFile(
+                this,
+                "$packageName.fileprovider",
+                photoFile
+            )
+
+            //Pasamos esa URI a la cámara para que guarde la imagen completa allí
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
             startActivityForResult(intent, 100)
         }
 
+        // Guardamos en la BD
         btnGuardar.setOnClickListener {
             val nombre = nombreEditText.text.toString()
             val descripcion = descripcionEditText.text.toString()
@@ -60,7 +79,8 @@ class AddMaterialsActivity : AppCompatActivity() {
                 else -> null
             }
 
-            val imageUrl = imageUri?.toString()  // Convertir `Uri` en String para guardar
+            // Tomamos la URI final de la foto y la convertimos a String
+            val imageUrl = photoURI?.toString()
 
             if (nombre.isNotEmpty() && descripcion.isNotEmpty()) {
                 dbHelper.agregarProducto(nombre, descripcion, precio, stock, categoryId, imageUrl)
@@ -72,23 +92,13 @@ class AddMaterialsActivity : AppCompatActivity() {
         }
     }
 
-    // **Manejar el resultado de la cámara**
+    // **Recibimos el resultado de la cámara**
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
-            val bitmap = data?.extras?.get("data") as Bitmap
-            imageUri = guardarImagen(bitmap)
-            Toast.makeText(this, "Imagen guardada", Toast.LENGTH_SHORT).show()
+            photoURI?.let {
+                Toast.makeText(this, "Imagen guardada", Toast.LENGTH_SHORT).show()
+            }
         }
-    }
-
-    // **Guardar imagen en almacenamiento interno**
-    private fun guardarImagen(bitmap: Bitmap): Uri {
-        val file = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "material_${System.currentTimeMillis()}.jpg")
-        val outStream = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
-        outStream.flush()
-        outStream.close()
-        return Uri.fromFile(file)
     }
 }

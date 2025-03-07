@@ -5,6 +5,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import android.net.Uri
+import androidx.appcompat.app.AlertDialog
+
+
 
 class ViewMaterialsActivity : AppCompatActivity() {
 
@@ -53,10 +57,28 @@ class ViewMaterialsActivity : AppCompatActivity() {
             stockTextView.text = material.stock.toString()
 
             btnVerImagen.setOnClickListener {
-                Toast.makeText(this@ViewMaterialsActivity, "Imagen de ${material.nombre}", Toast.LENGTH_SHORT).show()
-                // Aquí puedes abrir un diálogo o una nueva pantalla para ver la imagen
+                if (!material.imageUrl.isNullOrEmpty()) {
+                    val builder = AlertDialog.Builder(this@ViewMaterialsActivity)
+                    val dialogView = layoutInflater.inflate(R.layout.dialog_image, null)
+                    val dialogImageView = dialogView.findViewById<ImageView>(R.id.dialogImageView)
+                    dialogImageView.setImageURI(Uri.parse(material.imageUrl))
+                    builder.setView(dialogView)
+                        .setPositiveButton("Cerrar") { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .create()
+                        .show()
+                } else {
+                    Toast.makeText(
+                        this@ViewMaterialsActivity,
+                        "No hay imagen disponible",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
             return view
         }
     }
 }
+
+
