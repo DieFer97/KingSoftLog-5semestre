@@ -87,6 +87,6 @@
         app:itemIconTint="@null"
         app:itemHorizontalTranslationEnabled="false"
         app:labelVisibilityMode="labeled"
-        app:itemIconSize="24dp"
+        app:itemIconSize="26dp"
         app:rippleColor="@null"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
